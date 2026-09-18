@@ -2292,6 +2292,17 @@ class TestWWWAuthenticate:
                 "resource_metadata",
                 "https://api.example.com/auth/metadata?version=1",
             ),
+            # Regression (#3009): a decoy param whose name ends with the requested
+            # field must not shadow the real param.
+            ('Bearer error_scope="decoy", scope="read write"', "scope", "read write"),
+            ('Bearer as_scope=decoy, scope=read', "scope", "read"),
+            ('Bearer error_scope="a",scope="read write"', "scope", "read write"),
+            (
+                'Bearer x_resource_metadata="https://decoy.example.com", '
+                'resource_metadata="https://api.example.com/meta"',
+                "resource_metadata",
+                "https://api.example.com/meta",
+            ),
         ],
     )
     def test_extract_field_from_www_auth_valid_cases(
@@ -2326,6 +2337,14 @@ class TestWWWAuthenticate:
             # Malformed field (empty value)
             ("Bearer scope=", "scope", "malformed scope parameter"),
             ("Bearer resource_metadata=", "resource_metadata", "malformed resource_metadata parameter"),
+            # Regression (#3009): only a decoy param exists, so the requested field
+            # must not be matched as a substring of the decoy param name.
+            ('Bearer custom_scope="leaked"', "scope", "only a decoy scope param"),
+            (
+                'Bearer x_resource_metadata="https://decoy.example.com"',
+                "resource_metadata",
+                "only a decoy resource_metadata param",
+            ),
         ],
     )
     def test_extract_field_from_www_auth_invalid_cases(

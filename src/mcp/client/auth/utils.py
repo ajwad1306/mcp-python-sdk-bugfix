@@ -29,8 +29,12 @@ def extract_field_from_www_auth(response: Response, field_name: str) -> str | No
     if not www_auth_header:
         return None
 
-    # Pattern matches: field_name="value" or field_name=value (unquoted)
-    pattern = rf'{field_name}=(?:"([^"]+)"|([^\s,]+))'
+    # Pattern matches: field_name="value" or field_name=value (unquoted).
+    # The field name is anchored to the start of the header or a whitespace/comma
+    # separator so it only matches a complete auth-param name. Without this, a
+    # requested field such as "scope" would also match inside a longer param name
+    # like "error_scope", letting a decoy param shadow the real value.
+    pattern = rf'(?:^|[\s,]){re.escape(field_name)}=(?:"([^"]+)"|([^\s,]+))'
     match = re.search(pattern, www_auth_header)
 
     if match:
