@@ -2295,7 +2295,7 @@ class TestWWWAuthenticate:
             # Regression (#3009): a decoy param whose name ends with the requested
             # field must not shadow the real param.
             ('Bearer error_scope="decoy", scope="read write"', "scope", "read write"),
-            ('Bearer as_scope=decoy, scope=read', "scope", "read"),
+            ("Bearer as_scope=decoy, scope=read", "scope", "read"),
             ('Bearer error_scope="a",scope="read write"', "scope", "read write"),
             (
                 'Bearer x_resource_metadata="https://decoy.example.com", '
